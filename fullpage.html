@@ -1,0 +1,259 @@
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Can Money Buy Happiness?</title>
+	<meta name="description" content="IN4089 - Data Visualization">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="./style.css" />
+	<script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="http://d3js.org/topojson.v0.min.js"></script>
+	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+	<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+	<script src="https://d3js.org/d3-queue.v3.min.js"></script>
+	<script src="https://unpkg.com/d3-simple-slider"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.13.0/d3-legend.js"></script>
+	<style>
+
+
+	</style>
+</head>
+
+<body>
+
+	<main>
+		<section id="intro">
+			<div class="footnote"><p>IN4089 Data visualization (2022/23 Q2)</p></div>
+			<h1 class="intro__hed">Can Money Buy Happiness?</h1>
+			<p class="intro__dek">
+				Taking a look at the World Happiness Report and how GDP per capita might affect it.
+			</p>
+		</section>
+
+		<section id="scrolly">
+			<article>
+				<div class="step" data-step="1" style="height: 468px;" data-scrollama-index="0">
+					<p>What is the World Happiness Report?</p>
+				</div>
+				<div class="step" data-step="2" style="height: 468px;" data-scrollama-index="1">
+					<p>What countries are the happiest?</p>
+					<p2 style="left:10%; display: block;">
+						Looking at the world map to the side, we see the happiness score for most countries,
+						from 2015 to 2019. The darker the shade, the higher the score. <br>
+						It seems as though some regions score higher on average than others...
+					</p2>
+				</div>
+				<div class="step" data-step="3" style="height: 468px;" data-scrollama-index="2">
+					<p>Local and global trends in happiness</p>
+					<p2 style="left:10%; display: block;">
+						In this chart we see the average happiness scores grouped per region.
+						Having them stacked on top of each other allows to look for global trends as well. <br>
+						However, between 2015 and 2019, we see that the scores remain relatively constant, both regional
+						and global.
+						This also means that the differences between regions stay relatively large...
+					</p2>
+				</div>
+				<div class="step is-active" data-step="4" style="height: 468px;" data-scrollama-index="3">
+					<p>What countries are the richest?</p>
+					<p2 style="left:10%; display: block;">
+						The map to the left seems familiar, however it now depict the gross domestic product (GDP) per
+						capita of most countries
+						in the world.
+					</p2>
+				</div>
+				<div class="step is-active" data-step="4" style="height: 468px;" data-scrollama-index="3">
+					<p>Local and global trends in wealth</p>
+					<p2 style="left:10%; display: block;">
+						The first thing you might notice here is that globally, the GDP fluctuates more than the
+						happiness scores.
+						However, when we look at the colors in each bar, we see very similar proportions as in the
+						happiness chart, regardless of the year.
+					</p2>
+				</div>
+				<div class="step is-active" data-step="5" style="height: 468px;" data-scrollama-index="4">
+					<p>Change in GDP and in happiness</p>
+					<p2 style="left:10%; display: block;">
+						This scatter plot shows how the change (2015 versus 2019) in GDP relate to the happiness score. The countries are grouped by region.
+					</p2>
+				</div>
+				<div class="step is-active" data-step="6" style="height: 468px;" data-scrollama-index="5">
+					<p>Relative change in GDP and in happiness</p>
+					<p2 style="left:10%; display: block;">
+						This next scatter plot shows the relative change in GDP and happiness score, again grouped by region.
+						Also, the size of the dot is now proportional to the absolute GDP of the country. 
+					</p2>
+				</div>
+				<div class="step is-active" data-step="7" style="height: 468px;" data-scrollama-index="6">
+					<p>So, can money buy happiness?</p>
+						<p2 style="left:10%; display: block;">
+
+					</p2>
+				</div>
+			</article>
+
+			<figure style="height: 312.5px; top: 156.25px;">
+				<div id="title"></div>
+				<p></p>
+			</figure>
+		</section>
+
+		<section id="outro">
+			<div class="footnote">
+				<p>Developed by M. Lieftinck, R. Schreuder and D. Sousa Cruz for IN4089</p>
+			</div>
+		</section>
+	</main>
+	<div class="tooltip"></div>
+	<div class="row align-items-center">
+		<div class="col-md-2">
+			<p id="value-time"></p>
+		</div>
+	</div>
+
+	<!-- <div class='debug'></div> -->
+	<script src="https://unpkg.com/scrollama"></script>
+	<script src="./js/worldplot.js"></script>
+	<script src="./js/stacked_bar.js"></script>
+	<script src="./js/scatterplot.js"></script>
+	<script src="./js/scatterplot_relative.js"></script>
+	<script>
+
+		// using d3 for convenience
+		var main = d3.select("main");
+		var scrolly = main.select("#scrolly");
+		var figure = scrolly.select("figure");
+		var article = scrolly.select("article");
+		var step = article.selectAll(".step");
+
+		// initialize the scrollama
+		var scroller = scrollama();
+
+		// generic window resize listener event
+		function handleResize() {
+			// 1. update height of step elements
+			var stepH = Math.floor(window.innerHeight * 0.75);
+			step.style("height", stepH + "px");
+
+			var figureHeight = window.innerHeight / 1.5;
+			var figureMarginTop = (window.innerHeight - figureHeight) / 2;
+
+			figure
+				.style("height", figureHeight + "px")
+				.style("top", figureMarginTop + "px");
+
+			// 3. tell scrollama to update new element dimensions
+			scroller.resize();
+		}
+
+		// scrollama event handlers
+		function handleStepEnter(response) {
+			console.log(response);
+			// response = { element, direction, index }
+
+			// add color to current step only
+			step.classed("is-active", function (d, i) {
+				return i === response.index;
+			});
+
+			var figureHeight = 1.5;
+			switch (response.index) {
+				case 0:
+					figure.select("#title")
+						.text("")
+					figureHeight = window.innerHeight / 1.5;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("The World Happiness Report is a landmark survey of the state of global happiness. This survey ranks 155 countries based on the following metrics: GDP per capita, Social Support, Healthy Life Expectancy, Freedom, Generosity, and Perception of Corruption." +
+						'<img src="./images/happy_crop.jpg" width= "60%" height= "60%" style="margin-left: 140%; margin-top: -40%;" />');
+					break;
+				case 1:
+					figure.select("#title")
+						.text("Happiness per country")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html('<svg id="happiness_map" width= "1100" height= "410"></svg>' +
+						'<div class="col-md"><div id="slider-time";"font-size: 10rem"></div>');
+					createWorldMapHapp();
+					break;
+				case 2:
+					figure.select("#title")
+						.text("Happiness per region")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("<svg id='stacked_bar' width='960' height='500'></svg>");
+					createStackedBar("./data/regional_data_score.csv");
+					break;
+				case 3:
+					figure.select("#title")
+						.text("GDP per capita per country")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html('<svg id="gdp_map" width= "1100" height= "410"></svg>' +
+						'<div class="col-md"><div id="slider-time"></div>');
+					createWorldMapGDP();
+					break;
+				case 4:
+					figure.select("#title")
+						.text("GDP per capita per region")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("<svg id='stacked_bar' width='960' height='500'></svg>");
+					createStackedBar("./data/regional_data_gdp.csv");
+					break;
+				case 5:
+					figure.select("#title")
+						.text("Change in GDP versus change in happiness")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("<svg id='scatterplot' width='960' height='500'></svg>");
+					createScatterPlot();
+					break;
+				case 6:
+					figure.select("#title")
+						.text("Relative change in GDP versus change in happiness")
+					figureHeight = window.innerHeight / 1.3;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("<svg id='scatterplot_relative' width='960' height='500'></svg>");
+					createScatterPlotRelative();
+					break;
+				case 7:
+					figure.select("#title")
+						.text("")
+					figureHeight = window.innerHeight / 1.5;
+					figure.style("height", figureHeight + "px")
+					figure.select("p").html("We believe the answer to that question is not that straightforward. \
+					Hopefully you do now see that there is indeed a correlation between wealth and happiness, \
+					but there must be other factors at play as well. So, yes, money can certainly contribute to happiness, \
+					but the two are not equal.");
+					break;
+				default:
+					figure.select("p").html(response.index + 1);
+			}
+
+		}
+
+		function init() {
+
+			// 1. force a resize on load to ensure proper dimensions are sent to scrollama
+			handleResize();
+
+			// 2. setup the scroller passing options
+			// 		this will also initialize trigger observations
+			// 3. bind scrollama event handlers (this can be chained like below)
+			scroller
+				.setup({
+					step: "#scrolly article .step",
+					offset: 0.33,
+					debug: false
+				})
+				.onStepEnter(handleStepEnter);
+		}
+
+		// kick things off
+		init();
+	</script>
+
+
+</body>
+
+</html>
